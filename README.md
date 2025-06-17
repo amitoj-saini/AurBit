@@ -1,4 +1,4 @@
-# Aurbit Server
+# Aurbit
 
 ## The private tracking instance for your personal and business needs.
 
