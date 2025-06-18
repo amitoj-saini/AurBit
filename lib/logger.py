@@ -1,15 +1,12 @@
-from platformdirs import user_config_dir
+from lib.initial import APP_NAME, CONFIG_DIR
 import logging
 import os
 
-APP_NAME = "aurbit"
 HANDLERS = [
     ("error", logging.ERROR), 
     ("info", logging.INFO), 
-    ("warning", logging.WARNING)]
-
-config_dir = user_config_dir(APP_NAME)
-os.makedirs(config_dir, exist_ok=True)
+    ("warning", logging.WARNING)
+]
 
 logger = logging.getLogger(APP_NAME)
 logger.setLevel(logging.DEBUG)
@@ -24,7 +21,7 @@ class LogLevelFilter(logging.Filter):
         return record.levelno == self.level
 
 for handler_name, handler_type in HANDLERS:
-    handler = logging.FileHandler(os.path.join(config_dir, f"{handler_name}.log"))
+    handler = logging.FileHandler(os.path.join(CONFIG_DIR, f"{handler_name}.log"))
     handler.setLevel(handler_type)
     handler.setFormatter(logging_format)
     handler.addFilter(LogLevelFilter(handler_type))

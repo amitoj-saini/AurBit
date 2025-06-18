@@ -1,17 +1,13 @@
-from platformdirs import user_config_dir
+from lib.initial import CONFIG_DIR
 from lib.logger import logger
 import traceback
 import json
 import os
 
-APP_NAME = "aurbit"
 SERVER_CONFIG_FILE = "aurbit-server.json"
 DEFAULT_CONFIG = {
     "PORT": 2872 # ( spells out the word aura on a keypad )
 }
-
-config_dir = user_config_dir(APP_NAME)
-os.makedirs(config_dir, exist_ok=True)
 
 def verify_config(data, data_type=dict, required=[]):
     if type(data) != data_type: return False
@@ -23,7 +19,7 @@ def verify_config(data, data_type=dict, required=[]):
     return True
 
 def fetch_server_config():
-    config_path = os.path.join(config_dir, SERVER_CONFIG_FILE)
+    config_path = os.path.join(CONFIG_DIR, SERVER_CONFIG_FILE)
     config = {} # -- default
     try:
         config = json.load(open(config_path, "r"))
