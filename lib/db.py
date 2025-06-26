@@ -15,6 +15,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, nullable=False)
     displayName = Column(String, nullable=False)
+    access = Column(Integer, default=0) # 0: superuser, # 1: normal user... ( to be expanded later )
+    password = Column(String, nullable=False)
 
 class RateLimit(Base):
     __tablename__ = "ratelimit"

@@ -1,4 +1,5 @@
 # create nesscary folders
+from routers import users
 from lib import initial
 initial.setup()
 
@@ -11,11 +12,10 @@ CONFIG = configs.fetch_server_config()
 app = FastAPI()
 
 app.middleware("http")(middleware.path_validator)
-app.middleware("http")(middleware.pwd_validator(CONFIG["PWD"]))
+app.middleware("http")(middleware.auth_validator(CONFIG["PWD"]))
 
-@app.get("/")
-def index():
-    return {"message": "Everything seems to be in order"}
+# routers
+app.include_router(users.router, prefix="/users")
 
 if __name__ == "__main__":
     db.init_db()
