@@ -26,9 +26,23 @@ async def path_validator(request: Request, call_next):
     return await call_next(request)
 
 # function based middleware
-def login_required(func):
-    @wraps(func)
-    async def wrapper(request: Request, *args, **kwargs):
-        pass
+def login_required(exception=False):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(request: Request, *args, **kwargs):
+            session_token = request.cookies.get("session")
+            session = None
+            if session_token:
+                session = db.fetch_session(token=session_token)
+                
+            if not exception and not session:
+                return responses.generate_response(
+                    message="Invalid AurBit Session ID",
+                    code=401
+                )
+            
+            request.state.session = session
 
-    return wrapper
+            return await func(request, *args, **kwargs)
+        return wrapper
+    return decorator

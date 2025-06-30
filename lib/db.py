@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine, String, Column, Integer, DateTime, func
-from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
+from sqlalchemy import create_engine, String, Column, Boolean, Integer, DateTime, ForeignKey, func
+from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session, relationship
 from contextlib import contextmanager
 from lib.initial import CONFIG_DIR
+import secrets
 import os
 
 ENGINE = create_engine(f'sqlite:///{os.path.join(CONFIG_DIR, "aurbit.db")}', echo=False, future=True)
@@ -16,7 +17,18 @@ class User(Base):
     email = Column(String, nullable=False)
     displayName = Column(String, nullable=False)
     access = Column(Integer, default=0) # 0: superuser, # 1: normal user... ( to be expanded later )
-    password = Column(String, nullable=False)
+    initialized = Column(Boolean, default=False)
+    password = Column(String)
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token = Column(String, unique=True, nullable=False, default=lambda: secrets.token_urlsafe(32))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    user = relationship("User", backref="sessions")
 
 class RateLimit(Base):
     __tablename__ = "ratelimit"
@@ -60,3 +72,7 @@ def fetch_ratelimit(**kwargs):
 def update_ratelimit(id, **kwargs):
     with session_scope() as session:
         session.query(RateLimit).filter_by(id=id).update({**kwargs})
+
+def fetch_session(**kwargs):
+    with session_scope() as session:
+        return session.query(Session).filter_by(**kwargs).one_or_none()
