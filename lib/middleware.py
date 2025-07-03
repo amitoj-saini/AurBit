@@ -1,6 +1,18 @@
 from fastapi import Request, Response, status
 from lib import db, responses, functions
+from lib.logger import logger
 from functools import wraps
+import time
+
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    request_time = (time.time() - start_time) * 1000
+    logger.http(
+        f"{request.client.host} - {request.method} {request.url.path} {request.url.query}"
+        f"{response.status_code} - {request_time:.2f}ms"
+    )
+    return response
 
 # validate authentication from user
 def auth_validator(pwd):
@@ -9,6 +21,8 @@ def auth_validator(pwd):
         if auth == pwd:
             return await call_next(request)
         else:
+            
+            logger.access(f"Unauthorized User, incorrect bearer token from IP: {request.client.host}")
             limit = functions.leaky_rate_limiter(unauthorized_attempts=5, within=300, penalty=20, url="*", ip_addr=request.client.host)
             if limit: return limit
             return Response(status_code=status.HTTP_401_UNAUTHORIZED)

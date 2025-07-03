@@ -1,10 +1,10 @@
 # create nesscary folders
-from routers import users
 from lib import initial
 initial.setup()
 
 from lib import configs, db, middleware
 from fastapi import FastAPI
+from routers import users
 import uvicorn
 
 # varibles
@@ -13,6 +13,7 @@ app = FastAPI()
 
 app.middleware("http")(middleware.path_validator)
 app.middleware("http")(middleware.auth_validator(CONFIG["PWD"]))
+app.middleware("http")(middleware.log_requests)
 
 # routers
 app.include_router(users.router, prefix="/users")

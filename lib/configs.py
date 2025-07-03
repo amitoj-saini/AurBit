@@ -9,7 +9,7 @@ import os
 SERVER_CONFIG_FILE = "aurbit-server.json"
 DEFAULT_CONFIG = {
     "PORT": 2872, # ( spells out the word aura on a keypad )
-    "PWD": ''.join(random.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(32))
+    "PWD": ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(32))
 }
 
 def verify_config(data, data_type=dict, required=[]):

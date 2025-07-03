@@ -1,0 +1,4 @@
+* Create a user function that makes a superuser if no users exist; otherwise, create a regular user with a user-defined password.
+* Create a exception handler so api is consistent
+* Fix configs.py so half present configs are not overwritten
+* Optional: (Implement a self made dictionary checker - optimal for configs.py overwriting issue as well as solves inconsistant response of incorrect params)

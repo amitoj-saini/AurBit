@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from fastapi import Response, status
+from lib.logger import logger
 from lib import db
 
 def leaky_rate_limiter(unauthorized_attempts, within, penalty, **kwargs):
@@ -21,6 +22,7 @@ def leaky_rate_limiter(unauthorized_attempts, within, penalty, **kwargs):
         user_ratelimit.seconds = 0
     else:
         # still within penalty not allowed
+        logger.access(f"Unauthorized User, too many requests: {user_ratelimit.ip_addr}")
         resp = Response(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
 
     db.update_ratelimit(user_ratelimit.id, attempts=user_ratelimit.attempts, seconds=user_ratelimit.seconds) 
