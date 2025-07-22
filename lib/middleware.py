@@ -2,6 +2,7 @@ from fastapi import Request, Response, status
 from lib import db, responses, functions
 from lib.logger import logger
 from functools import wraps
+import inspect
 import time
 
 async def log_requests(request: Request, call_next):
@@ -31,7 +32,8 @@ def auth_validator(pwd):
 # middleware for validating paths based off of aurbit contexts
 async def path_validator(request: Request, call_next):
     # if no users created ( setup )
-    if len(db.fetch_users()) == 0 and (request.url.path.rstrip("/") != "/users" or request.method != "POST"):
+    request.state.users_length = len(db.fetch_users())
+    if request.state.users_length == 0 and (request.url.path.rstrip("/") != "/users" or request.method != "POST"):
         return responses.generate_response(
             message="AurBit hasn't been setup yet, create a user.",
             code=400
@@ -49,11 +51,12 @@ def login_required(exception=False):
             if session_token:
                 session = db.fetch_session(token=session_token)
                 
-            if not exception and not session:
-                return responses.generate_response(
-                    message="Invalid AurBit Session ID",
-                    code=401
-                )
+            if not session:
+                if (type(exception) == bool and not exception) or (inspect.isfunction(exception) and not exception(request)):
+                    return responses.generate_response(
+                        message="Invalid AurBit Session ID",
+                        code=401
+                    )
             
             request.state.session = session
 

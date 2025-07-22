@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, String, Column, Boolean, Integer, DateTime, ForeignKey, func
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session, relationship
+from datetime import datetime, timedelta
 from contextlib import contextmanager
 from lib.initial import CONFIG_DIR
 import secrets
@@ -76,3 +77,28 @@ def update_ratelimit(id, **kwargs):
 def fetch_session(**kwargs):
     with session_scope() as session:
         return session.query(Session).filter_by(**kwargs).one_or_none()
+    
+def create_new_user(**kwargs):
+    with session_scope() as session:
+        user = User(**kwargs)
+        session.add(user)
+        session.commit()
+        return user
+    return None
+
+def create_user_session(user_id):
+    with session_scope() as session:
+        user = session.query(User).filter(User.id == user_id).first()
+        if user:
+            user_session = Session(
+                user_id=user_id,
+                expires_at=datetime.utcnow() + timedelta(days=365)
+            )
+
+            session.add(user_session)
+            session.commit()
+            session.refresh(user_session)
+            
+            return user_session
+        return None
+            

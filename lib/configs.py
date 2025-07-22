@@ -1,3 +1,4 @@
+from pydantic import BaseModel, EmailStr, ValidationError
 from lib.initial import CONFIG_DIR
 from lib.logger import logger
 import traceback
@@ -11,6 +12,10 @@ DEFAULT_CONFIG = {
     "PORT": 2872, # ( spells out the word aura on a keypad )
     "PWD": ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(32))
 }
+
+class Config(BaseModel):
+    PORT: int
+    PWD: str
 
 def verify_config(data, data_type=dict, required=[]):
     if type(data) != data_type: return False
@@ -30,11 +35,17 @@ def fetch_server_config():
         # json syntax error
         logger.error(f"Unable to fetch required fields from config: {config_path} {traceback.format_exc()}")
 
-    if not verify_config(config, dict, ["PORT", "PWD"]):
-        logger.info(f"Manually created config file: {config_path}")
+    try:
+        # verifacation
+        Config(**config)
+    except ValidationError as e:
+        for err in e.errors():
+            config[err["loc"][0]] = DEFAULT_CONFIG[err["loc"][0]]
+        
+        logger.info(f'Added default field {err["loc"][0]} to config')
+
         file = open(config_path, "w")
-        file.write(json.dumps(DEFAULT_CONFIG, indent=4))
+        file.write(json.dumps(config, indent=4))
         file.close()
-        return DEFAULT_CONFIG
     
     return config
