@@ -3,8 +3,8 @@ from lib import initial
 initial.setup()
 
 from lib import configs, db, middleware
-from fastapi import FastAPI
 from routers import users
+from fastapi import FastAPI
 import uvicorn
 
 # varibles
@@ -17,6 +17,7 @@ app.middleware("http")(middleware.log_requests)
 
 # routers
 app.include_router(users.router, prefix="/users")
+app.include_router(utils.router, prefix="/utils")
 
 if __name__ == "__main__":
     db.init_db()

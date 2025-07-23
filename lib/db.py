@@ -1,9 +1,11 @@
 from sqlalchemy import create_engine, String, Column, Boolean, Integer, DateTime, ForeignKey, func
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 from lib.initial import CONFIG_DIR
 import secrets
+import bcrypt
 import os
 
 ENGINE = create_engine(f'sqlite:///{os.path.join(CONFIG_DIR, "aurbit.db")}', echo=False, future=True)
@@ -19,7 +21,24 @@ class User(Base):
     displayName = Column(String, nullable=False)
     access = Column(Integer, default=0) # 0: superuser, # 1: normal user... ( to be expanded later )
     initialized = Column(Boolean, default=False)
-    password = Column(String)
+    _password = Column("password", String, nullable=True)
+
+    @hybrid_property
+    def password(self):
+        return self._password
+    
+    @password.setter
+    def password(self, raw_password):
+        if raw_password is None:
+            self._password = None
+        else:
+            hashed = bcrypt.hashpw(raw_password.encode("utf-8"), bcrypt.gensalt())
+            self._password = hashed.decode("utf-8")
+
+    def verify_password(self, raw_password):
+        if not self._password or raw_password is None:
+            return False
+        return bcrypt.checkpw(raw_password.encode("utf-8"), self._password.encode("utf-8"))
 
 class Session(Base):
     __tablename__ = "sessions"
@@ -98,7 +117,7 @@ def create_user_session(user_id):
             session.add(user_session)
             session.commit()
             session.refresh(user_session)
-            
+
             return user_session
         return None
             

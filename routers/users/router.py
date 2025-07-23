@@ -24,7 +24,6 @@ async def create_user(request: Request, user: CreateUser):
             return generate_response(data={
                 "access_token": created_session.token
             }, code=200)
-        print("created user")
     else:
         pass
     
