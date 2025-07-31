@@ -1,1 +1,2 @@
 * Create a exception handler so api is consistent
+* Create more users ( only superusers can create more users but they cannot set the password ... the user sets their own password )

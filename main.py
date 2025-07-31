@@ -17,7 +17,6 @@ app.middleware("http")(middleware.log_requests)
 
 # routers
 app.include_router(users.router, prefix="/users")
-app.include_router(utils.router, prefix="/utils")
 
 if __name__ == "__main__":
     db.init_db()

@@ -33,7 +33,7 @@ def auth_validator(pwd):
 async def path_validator(request: Request, call_next):
     # if no users created ( setup )
     request.state.users_length = len(db.fetch_users())
-    if request.state.users_length == 0 and (request.url.path.rstrip("/") != "/users" or request.method != "POST"):
+    if request.state.users_length == 0 and (request.url.path.rstrip("/") != "/users/register" or request.method != "POST"):
         return responses.generate_response(
             message="AurBit hasn't been setup yet, create a user.",
             code=400

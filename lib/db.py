@@ -79,6 +79,10 @@ def fetch_users():
     with session_scope() as session:
         return session.query(User).all()
     
+def fetch_user(**kwargs):
+    with session_scope() as session:
+        return session.query(User).filter_by(**kwargs).first()
+    
 def fetch_ratelimit(**kwargs):
     with session_scope() as session:
         
@@ -104,6 +108,13 @@ def create_new_user(**kwargs):
         session.commit()
         return user
     return None
+
+def delete_user_sessions(user_id):
+    with session_scope() as session:
+        print(session.query(Session).filter(Session.user_id == user_id).all())
+        for user_session in session.query(Session).filter(Session.user_id == user_id).all():
+            session.delete(user_session)
+            session.commit()
 
 def create_user_session(user_id):
     with session_scope() as session:
