@@ -47,18 +47,18 @@ def login_required(exception=False):
         @wraps(func)
         async def wrapper(request: Request, *args, **kwargs):
             session_token = request.cookies.get("session")
-            session = None
+            session_user = None
             if session_token:
-                session = db.fetch_session(token=session_token)
+                session_user = db.fetch_user_from_session(token=session_token)
                 
-            if not session:
+            if not session_user:
                 if (type(exception) == bool and not exception) or (inspect.isfunction(exception) and not exception(request)):
                     return responses.generate_response(
                         message="Invalid AurBit Session ID",
                         code=401
                     )
             
-            request.state.session = session
+            request.state.user = session_user
 
             return await func(request, *args, **kwargs)
         return wrapper

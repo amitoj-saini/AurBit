@@ -29,3 +29,12 @@ Aurbit is ready for you to deploy on your own infrastructure. Take control of yo
 ---
 
 Protect your data. Protect your privacy. Choose Aurbit. 🛡️✨
+
+
+### API Routes
+
+| Method | Endpoint         | Access     | Description                                                           |
+|--------|------------------|------------|-----------------------------------------------------------------------|
+| GET    | /users/          | all users  | Fetch logged in user Information                                      |
+| POST   | /users/register  | superuser  | Create new user or inital user                                        |
+| POST   | /users/login     | all users  | Authenticates users or initializes credentials for first-time login.  |

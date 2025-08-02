@@ -4,6 +4,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 from lib.initial import CONFIG_DIR
+from lib.logger import logger
 import secrets
 import bcrypt
 import os
@@ -17,7 +18,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
     displayName = Column(String, nullable=False)
     access = Column(Integer, default=0) # 0: superuser, # 1: normal user... ( to be expanded later )
     initialized = Column(Boolean, default=False)
@@ -97,21 +98,43 @@ def update_ratelimit(id, **kwargs):
     with session_scope() as session:
         session.query(RateLimit).filter_by(id=id).update({**kwargs})
 
-def fetch_session(**kwargs):
+def fetch_user_from_session(**kwargs):
     with session_scope() as session:
-        return session.query(Session).filter_by(**kwargs).one_or_none()
+        user_session = session.query(Session).filter_by(**kwargs).one_or_none()
+        if user_session:
+            return user_session.user
+        else:
+            return None
     
 def create_new_user(**kwargs):
-    with session_scope() as session:
-        user = User(**kwargs)
-        session.add(user)
-        session.commit()
-        return user
+    try:
+        with session_scope() as session:
+            user = User(**kwargs)
+            session.add(user)
+            session.commit()
+            return user
+    except Exception as e:
+        print(e)
+        logger.error(e)
     return None
+
+def edit_user(user_id, **kwargs):
+    try:
+        with session_scope() as session:
+            user = session.query(User).filter_by(id=user_id).one_or_none()
+            if user:
+                for key, val in kwargs.items():
+                    if hasattr(user, key):
+                        setattr(user, key, val)
+                session.commit()
+            return user
+    except Exception as e:
+        print(e)
+        logger.error(e)
+    return False
 
 def delete_user_sessions(user_id):
     with session_scope() as session:
-        print(session.query(Session).filter(Session.user_id == user_id).all())
         for user_session in session.query(Session).filter(Session.user_id == user_id).all():
             session.delete(user_session)
             session.commit()
